@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+coverage
+data
+mobile-app
+*.lock
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

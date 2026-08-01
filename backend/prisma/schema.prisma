@@ -1,0 +1,355 @@
+// AICRP Sangamneri Goat Breeding — Phase 1 domain schema
+// Roles: ADMIN | FIELD_STAFF | VETERINARIAN (see docs/phase-1.md)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  DIRECTOR
+  HOD
+  SENIOR_SCIENTIST
+  CO_PI
+  DATA_ENUMERATOR
+}
+
+enum AnimalStatus {
+  ACTIVE
+  SOLD
+  DEAD
+  TRANSFERRED
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum MatingType {
+  NATURAL
+  ARTIFICIAL_INSEMINATION
+}
+
+enum BreedingStatus {
+  PLANNED
+  MATED
+  PREGNANT
+  KIDDED
+  FAILED
+  CANCELLED
+}
+
+enum WeightSubjectType {
+  BUCK
+  DOE
+  PROGENY
+}
+
+enum NotificationType {
+  SYSTEM
+  SYNC_CONFLICT
+  REPORT
+  BREEDING_REMINDER
+  GENERAL
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  phone        String?
+  role         Role
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  refreshTokens      RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  auditLogs          AuditLog[]
+  notifications      Notification[]
+  registeredBucks    Buck[]            @relation("BuckRegisteredBy")
+  registeredDoes     Doe[]             @relation("DoeRegisteredBy")
+  recordedBreedings  BreedingEvent[]   @relation("BreedingRecordedBy")
+  registeredProgeny  Progeny[]         @relation("ProgenyRegisteredBy")
+  recordedWeights    WeightRecord[]    @relation("WeightRecordedBy")
+  createdClusters    Cluster[]         @relation("ClusterCreatedBy")
+  syncDevices        SyncDevice[]
+
+  @@index([role])
+  @@index([isActive])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Cluster {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  district    String?
+  state       String?
+  isActive    Boolean  @default(true)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User?     @relation("ClusterCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  villages  Village[]
+  bucks     Buck[]
+  does      Doe[]
+
+  @@index([isActive])
+}
+
+model Village {
+  id        String   @id @default(cuid())
+  clusterId String
+  code      String
+  name      String
+  latitude  Float?
+  longitude Float?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cluster Cluster  @relation(fields: [clusterId], references: [id], onDelete: Restrict)
+  farmers Farmer[]
+
+  @@unique([clusterId, code])
+  @@index([clusterId])
+  @@index([isActive])
+}
+
+model Farmer {
+  id        String   @id @default(cuid())
+  villageId String
+  code      String
+  fullName  String
+  phone     String?
+  address   String?
+  gender    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  village Village  @relation(fields: [villageId], references: [id], onDelete: Restrict)
+  bucks   Buck[]
+  does    Doe[]
+  progeny Progeny[]
+
+  @@unique([villageId, code])
+  @@index([villageId])
+  @@index([isActive])
+}
+
+model Buck {
+  id             String       @id @default(cuid())
+  tagNumber      String       @unique
+  name           String?
+  breed          String       @default("Sangamneri")
+  dateOfBirth    DateTime?
+  status         AnimalStatus @default(ACTIVE)
+  clusterId      String
+  farmerId       String?
+  sireTag        String?
+  damTag         String?
+  microchipId    String?
+  notes          String?
+  gpsLatitude    Float?
+  gpsLongitude   Float?
+  registeredById String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  cluster      Cluster         @relation(fields: [clusterId], references: [id], onDelete: Restrict)
+  farmer       Farmer?         @relation(fields: [farmerId], references: [id], onDelete: SetNull)
+  registeredBy User?           @relation("BuckRegisteredBy", fields: [registeredById], references: [id], onDelete: SetNull)
+  breedings    BreedingEvent[]
+
+  @@index([clusterId])
+  @@index([farmerId])
+  @@index([status])
+}
+
+model Doe {
+  id             String       @id @default(cuid())
+  tagNumber      String       @unique
+  name           String?
+  breed          String       @default("Sangamneri")
+  dateOfBirth    DateTime?
+  status         AnimalStatus @default(ACTIVE)
+  clusterId      String
+  farmerId       String?
+  sireTag        String?
+  damTag         String?
+  microchipId    String?
+  notes          String?
+  gpsLatitude    Float?
+  gpsLongitude   Float?
+  registeredById String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  cluster      Cluster         @relation(fields: [clusterId], references: [id], onDelete: Restrict)
+  farmer       Farmer?         @relation(fields: [farmerId], references: [id], onDelete: SetNull)
+  registeredBy User?           @relation("DoeRegisteredBy", fields: [registeredById], references: [id], onDelete: SetNull)
+  breedings    BreedingEvent[]
+
+  @@index([clusterId])
+  @@index([farmerId])
+  @@index([status])
+}
+
+model BreedingEvent {
+  id                  String         @id @default(cuid())
+  buckId              String
+  doeId               String
+  matingType          MatingType     @default(NATURAL)
+  matingDate          DateTime
+  expectedKiddingDate DateTime?
+  actualKiddingDate   DateTime?
+  status              BreedingStatus @default(PLANNED)
+  notes               String?
+  gpsLatitude         Float?
+  gpsLongitude        Float?
+  recordedById        String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  buck       Buck      @relation(fields: [buckId], references: [id], onDelete: Restrict)
+  doe        Doe       @relation(fields: [doeId], references: [id], onDelete: Restrict)
+  recordedBy User?     @relation("BreedingRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
+  progeny    Progeny[]
+
+  @@index([buckId])
+  @@index([doeId])
+  @@index([status])
+  @@index([matingDate])
+}
+
+model Progeny {
+  id              String       @id @default(cuid())
+  breedingEventId String
+  tagNumber       String       @unique
+  sex             Sex
+  birthDate       DateTime
+  birthWeightKg   Float?
+  status          AnimalStatus @default(ACTIVE)
+  farmerId        String?
+  notes           String?
+  gpsLatitude     Float?
+  gpsLongitude    Float?
+  registeredById  String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  breedingEvent BreedingEvent @relation(fields: [breedingEventId], references: [id], onDelete: Restrict)
+  farmer        Farmer?       @relation(fields: [farmerId], references: [id], onDelete: SetNull)
+  registeredBy  User?         @relation("ProgenyRegisteredBy", fields: [registeredById], references: [id], onDelete: SetNull)
+
+  @@index([breedingEventId])
+  @@index([farmerId])
+  @@index([status])
+}
+
+model WeightRecord {
+  id           String            @id @default(cuid())
+  subjectType  WeightSubjectType
+  subjectId    String
+  weightKg     Float
+  recordedAt   DateTime
+  notes        String?
+  gpsLatitude  Float?
+  gpsLongitude Float?
+  recordedById String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  recordedBy User? @relation("WeightRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
+
+  @@index([subjectType, subjectId])
+  @@index([recordedAt])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  type      NotificationType @default(GENERAL)
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model SyncDevice {
+  id           String    @id @default(cuid())
+  userId       String
+  deviceId     String
+  platform     String?
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+  @@index([userId])
+}

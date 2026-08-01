@@ -1,0 +1,35 @@
+{
+  "name": "aicrp-goat-breeding",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AICRP Sangamneri Goat Breeding & Genetic Tracking System",
+  "workspaces": [
+    "backend",
+    "admin-panel"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev -w backend",
+    "dev:admin": "npm run dev -w admin-panel",
+    "build:backend": "npm run build -w backend",
+    "build:admin": "npm run build -w admin-panel",
+    "lint": "npm run lint -w backend && npm run lint -w admin-panel",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css,yml,yaml}\"",
+    "db:generate": "npm run prisma:generate -w backend",
+    "db:migrate": "npm run prisma:migrate -w backend",
+    "db:studio": "npm run prisma:studio -w backend",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "devDependencies": {
+    "@types/morgan": "^1.9.10",
+    "prettier": "^3.5.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "morgan": "^1.11.0"
+  }
+}
