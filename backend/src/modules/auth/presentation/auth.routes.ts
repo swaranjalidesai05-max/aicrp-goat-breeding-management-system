@@ -38,6 +38,8 @@ authRouter.post(
   asyncHandler(authController.resetPassword),
 );
 
+authRouter.post('/register', validate(registerUserSchema), asyncHandler(authController.register));
+
 authRouter.get('/me', authenticate, asyncHandler(authController.me));
 authRouter.post('/logout-all', authenticate, asyncHandler(authController.logoutAll));
 authRouter.post(

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api/v1';
+import { requestJson } from '../lib/api';
 
 type User = {
   id: string;
@@ -24,8 +23,7 @@ export default function UsersPage() {
 
   const load = async () => {
     setLoading(true);
-    const response = await fetch(`${API_BASE_URL}/auth/users?search=${encodeURIComponent(search)}`);
-    const json = await response.json();
+    const json = await requestJson(`/auth/users?search=${encodeURIComponent(search)}`);
     setUsers(json.data ?? []);
     setLoading(false);
   };
@@ -36,9 +34,8 @@ export default function UsersPage() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    await fetch(`${API_BASE_URL}/auth/users`, {
+    await requestJson('/auth/users', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
     setForm({ email: '', password: '', fullName: '', role: 'DATA_ENUMERATOR' });

@@ -112,7 +112,7 @@ export class AuthService {
     });
   }
 
-  async register(input: RegisterUserInput, actorId: string): Promise<PublicUser> {
+  async register(input: RegisterUserInput, actorId?: string | null): Promise<PublicUser> {
     const existing = await userRepository.findByEmail(input.email);
     if (existing) {
       throw new ConflictError('Email is already registered');
@@ -128,7 +128,7 @@ export class AuthService {
     });
 
     await writeAuditLog({
-      userId: actorId,
+      userId: actorId ?? undefined,
       action: 'USER_CREATE',
       entityType: 'User',
       entityId: user.id,

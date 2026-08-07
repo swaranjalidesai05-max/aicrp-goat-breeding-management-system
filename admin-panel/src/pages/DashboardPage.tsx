@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const modules = [
   { title: 'Villages', description: 'Create and search village records', href: '/villages' },
+  { title: 'Clusters', description: 'Manage operational cluster regions', href: '/clusters' },
   { title: 'Users', description: 'Manage staff accounts and roles', href: '/users' },
   { title: 'Farmers', description: 'Track farmer profiles and mapping', href: '/farmers' },
   { title: 'Bucks', description: 'Track buck inventory and status', href: '/bucks' },

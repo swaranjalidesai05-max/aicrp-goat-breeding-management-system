@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api/v1';
+import { requestJson } from '../lib/api';
 
 type Village = {
   id: string;
@@ -33,14 +32,10 @@ export default function VillagesPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const [villagesRes, clustersRes] = await Promise.all([
-        fetch(
-          `${API_BASE_URL}/villages?search=${encodeURIComponent(search)}${filterCluster ? `&clusterId=${filterCluster}` : ''}`,
-        ),
-        fetch(`${API_BASE_URL}/clusters`),
+      const [villagesJson, clustersJson] = await Promise.all([
+        requestJson(`/villages?search=${encodeURIComponent(search)}${filterCluster ? `&clusterId=${filterCluster}` : ''}`),
+        requestJson('/clusters'),
       ]);
-      const villagesJson = await villagesRes.json();
-      const clustersJson = await clustersRes.json();
       setVillages(villagesJson.data ?? []);
       setClusters(clustersJson.data ?? []);
     } finally {
@@ -61,9 +56,8 @@ export default function VillagesPage() {
       latitude: form.latitude ? Number(form.latitude) : null,
       longitude: form.longitude ? Number(form.longitude) : null,
     };
-    await fetch(`${API_BASE_URL}/villages`, {
+    await requestJson('/villages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
     setForm({ code: '', name: '', clusterId: '', latitude: '', longitude: '' });

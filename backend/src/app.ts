@@ -11,7 +11,11 @@ import { buckRouter } from './modules/bucks/presentation/buck.routes';
 import { clusterRouter } from './modules/clusters/presentation/cluster.routes';
 import { doeRouter } from './modules/does/presentation/doe.routes';
 import { farmerRouter } from './modules/farmers/presentation/farmer.routes';
+import { notificationRouter } from './modules/notifications/presentation/notification.routes';
+import { reportRouter } from './modules/reports/presentation/report.routes';
+import { progenyRouter } from './modules/progeny/presentation/progeny.routes';
 import { villageRouter } from './modules/villages/presentation/village.routes';
+import { weightRouter } from './modules/weights/presentation/weight.routes';
 import { healthRouter } from './routes/health';
 import { errorHandler } from './presentation/middleware/errorHandler';
 
@@ -43,6 +47,10 @@ export function createApp() {
   app.use(`${env.apiPrefix}/bucks`, buckRouter);
   app.use(`${env.apiPrefix}/does`, doeRouter);
   app.use(`${env.apiPrefix}/breeding-events`, breedingRouter);
+  app.use(`${env.apiPrefix}/progeny`, progenyRouter);
+  app.use(`${env.apiPrefix}/weights`, weightRouter);
+  app.use(`${env.apiPrefix}/notifications`, notificationRouter);
+  app.use(`${env.apiPrefix}/reports`, reportRouter);
 
   app.use((_req, res) => {
     res.status(404).json({ error: 'Not found' });

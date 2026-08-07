@@ -19,6 +19,7 @@ export const createProgenySchema = z
 
 export const updateProgenySchema = z
   .object({
+    breedingEventId: z.string().cuid().optional(),
     tagNumber: z.string().trim().min(1).max(64).optional(),
     sex: z.nativeEnum(Sex).optional(),
     birthDate: z.coerce.date().optional(),

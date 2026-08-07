@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api/v1';
+import { requestJson } from '../lib/api';
 
 type Doe = {
   id: string;
@@ -34,14 +33,11 @@ export default function DoesPage() {
 
   const load = async () => {
     setLoading(true);
-    const [doesRes, clustersRes, farmersRes] = await Promise.all([
-      fetch(`${API_BASE_URL}/does?search=${encodeURIComponent(search)}`),
-      fetch(`${API_BASE_URL}/clusters`),
-      fetch(`${API_BASE_URL}/farmers`),
+    const [doesJson, clustersJson, farmersJson] = await Promise.all([
+      requestJson(`/does?search=${encodeURIComponent(search)}`),
+      requestJson('/clusters'),
+      requestJson('/farmers'),
     ]);
-    const doesJson = await doesRes.json();
-    const clustersJson = await clustersRes.json();
-    const farmersJson = await farmersRes.json();
     setDoes(doesJson.data ?? []);
     setClusters(clustersJson.data ?? []);
     setFarmers(farmersJson.data ?? []);
@@ -54,9 +50,8 @@ export default function DoesPage() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    await fetch(`${API_BASE_URL}/does`, {
+    await requestJson('/does', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, farmerId: form.farmerId || null }),
     });
     setForm({

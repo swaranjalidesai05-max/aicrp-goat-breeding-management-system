@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const location = useLocation();
+  const registrationState = location.state as { registered?: boolean; email?: string } | null;
+  const [email, setEmail] = useState(registrationState?.email ?? '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,6 +36,12 @@ export default function LoginPage() {
         <p className="mt-2 text-sm text-stone-600">
           Use your registered credentials to access the breeding dashboard.
         </p>
+
+        {registrationState?.registered ? (
+          <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
+            Your account has been created. Sign in to continue.
+          </p>
+        ) : null}
 
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <label className="block text-sm font-medium text-stone-700">
@@ -68,6 +76,13 @@ export default function LoginPage() {
             {isSubmitting ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+
+        <p className="mt-4 text-center text-sm text-stone-500">
+          Need an account?{' '}
+          <Link to="/register" className="font-semibold text-stone-900 underline">
+            Register now
+          </Link>
+        </p>
       </div>
     </main>
   );

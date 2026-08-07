@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api/v1';
+import { requestJson } from '../lib/api';
 
 type Farmer = {
   id: string;
@@ -35,12 +34,10 @@ export default function FarmersPage() {
 
   const load = async () => {
     setLoading(true);
-    const [farmersRes, villagesRes] = await Promise.all([
-      fetch(`${API_BASE_URL}/farmers?search=${encodeURIComponent(search)}`),
-      fetch(`${API_BASE_URL}/villages`),
+    const [farmersJson, villagesJson] = await Promise.all([
+      requestJson(`/farmers?search=${encodeURIComponent(search)}`),
+      requestJson('/villages'),
     ]);
-    const farmersJson = await farmersRes.json();
-    const villagesJson = await villagesRes.json();
     setFarmers(farmersJson.data ?? []);
     setVillages(villagesJson.data ?? []);
     setLoading(false);
@@ -52,9 +49,8 @@ export default function FarmersPage() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    await fetch(`${API_BASE_URL}/farmers`, {
+    await requestJson('/farmers', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...form,
         gpsLatitude: form.gpsLatitude ? Number(form.gpsLatitude) : null,

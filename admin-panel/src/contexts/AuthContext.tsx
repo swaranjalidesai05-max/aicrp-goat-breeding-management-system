@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api/v1';
+import { requestJson } from '../lib/api';
+import { AUTH_STORAGE_KEYS } from '../lib/api';
 
 type UserProfile = {
   id: string;
@@ -22,28 +23,6 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const STORAGE_KEYS = {
-  accessToken: 'auth.accessToken',
-  refreshToken: 'auth.refreshToken',
-  user: 'auth.user',
-};
-
-async function requestJson(input: string, init?: RequestInit) {
-  const response = await fetch(input, {
-    headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
-    ...init,
-  });
-
-  const contentType = response.headers.get('content-type') ?? '';
-  const payload = contentType.includes('application/json') ? await response.json() : null;
-
-  if (!response.ok) {
-    throw new Error(payload?.error?.message ?? 'Request failed');
-  }
-
-  return payload;
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,37 +31,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const persistSession = (
     nextUser: UserProfile | null,
-    accessToken?: string,
-    refreshToken?: string,
+    nextAccessToken?: string,
+    nextRefreshToken?: string,
   ) => {
     setUser(nextUser);
-    setAccessToken(accessToken ?? null);
-    setRefreshToken(refreshToken ?? null);
+    setAccessToken(nextAccessToken ?? null);
+    setRefreshToken(nextRefreshToken ?? null);
 
-    if (accessToken) {
-      localStorage.setItem(STORAGE_KEYS.accessToken, accessToken);
+    if (nextAccessToken) {
+      localStorage.setItem(AUTH_STORAGE_KEYS.accessToken, nextAccessToken);
     } else {
-      localStorage.removeItem(STORAGE_KEYS.accessToken);
+      localStorage.removeItem(AUTH_STORAGE_KEYS.accessToken);
     }
 
-    if (refreshToken) {
-      localStorage.setItem(STORAGE_KEYS.refreshToken, refreshToken);
+    if (nextRefreshToken) {
+      localStorage.setItem(AUTH_STORAGE_KEYS.refreshToken, nextRefreshToken);
     } else {
-      localStorage.removeItem(STORAGE_KEYS.refreshToken);
+      localStorage.removeItem(AUTH_STORAGE_KEYS.refreshToken);
     }
 
     if (nextUser) {
-      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(nextUser));
+      localStorage.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(nextUser));
     } else {
-      localStorage.removeItem(STORAGE_KEYS.user);
+      localStorage.removeItem(AUTH_STORAGE_KEYS.user);
     }
   };
 
   useEffect(() => {
     const restoreSession = async () => {
-      const storedUser = localStorage.getItem(STORAGE_KEYS.user);
-      const accessToken = localStorage.getItem(STORAGE_KEYS.accessToken);
-      const refreshToken = localStorage.getItem(STORAGE_KEYS.refreshToken);
+      const storedUser = localStorage.getItem(AUTH_STORAGE_KEYS.user);
+      const accessToken = localStorage.getItem(AUTH_STORAGE_KEYS.accessToken);
+      const refreshToken = localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken);
 
       if (!storedUser || !accessToken || !refreshToken) {
         setIsLoading(false);
@@ -106,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const result = await requestJson(`${API_BASE_URL}/auth/login`, {
+    const result = await requestJson('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
@@ -116,10 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    const refreshToken = localStorage.getItem(STORAGE_KEYS.refreshToken);
+    const refreshToken = localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken);
     if (refreshToken) {
       try {
-        await requestJson(`${API_BASE_URL}/auth/logout`, {
+        await requestJson('/auth/logout', {
           method: 'POST',
           body: JSON.stringify({ refreshToken }),
         });
@@ -131,18 +110,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshSession = async () => {
-    const refreshToken = localStorage.getItem(STORAGE_KEYS.refreshToken);
+    const refreshToken = localStorage.getItem(AUTH_STORAGE_KEYS.refreshToken);
     if (!refreshToken) {
       persistSession(null);
       return;
     }
 
-    const result = await requestJson(`${API_BASE_URL}/auth/refresh`, {
+    const result = await requestJson('/auth/refresh', {
       method: 'POST',
       body: JSON.stringify({ refreshToken }),
     });
 
-    const storedUser = localStorage.getItem(STORAGE_KEYS.user);
+    const storedUser = localStorage.getItem(AUTH_STORAGE_KEYS.user);
     const nextUser = storedUser ? (JSON.parse(storedUser) as UserProfile) : null;
     persistSession(nextUser, result.tokens.accessToken, result.tokens.refreshToken);
   };

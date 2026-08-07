@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api/v1';
+import { requestJson } from '../lib/api';
 
 type BreedingEvent = {
   id: string;
@@ -31,14 +30,11 @@ export default function BreedingEventsPage() {
 
   const load = async () => {
     setLoading(true);
-    const [eventsRes, bucksRes, doesRes] = await Promise.all([
-      fetch(`${API_BASE_URL}/breeding-events?search=${encodeURIComponent(search)}`),
-      fetch(`${API_BASE_URL}/bucks`),
-      fetch(`${API_BASE_URL}/does`),
+    const [eventsJson, bucksJson, doesJson] = await Promise.all([
+      requestJson(`/breeding-events?search=${encodeURIComponent(search)}`),
+      requestJson('/bucks'),
+      requestJson('/does'),
     ]);
-    const eventsJson = await eventsRes.json();
-    const bucksJson = await bucksRes.json();
-    const doesJson = await doesRes.json();
     setEvents(eventsJson.data ?? []);
     setBucks(bucksJson.data ?? []);
     setDoes(doesJson.data ?? []);
@@ -51,9 +47,8 @@ export default function BreedingEventsPage() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    await fetch(`${API_BASE_URL}/breeding-events`, {
+    await requestJson('/breeding-events', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, matingDate: new Date(form.matingDate).toISOString() }),
     });
     setForm({

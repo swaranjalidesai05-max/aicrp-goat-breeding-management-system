@@ -66,8 +66,8 @@ export class AuthController {
   };
 
   register = async (req: Request, res: Response) => {
-    const actor = requireAuthUser(req);
-    const user = await authService.register(req.body as RegisterUserInput, actor.id);
+    const actor = req.user ? requireAuthUser(req) : undefined;
+    const user = await authService.register(req.body as RegisterUserInput, actor?.id ?? null);
     res.status(201).json({ user });
   };
 
