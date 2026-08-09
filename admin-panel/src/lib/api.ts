@@ -33,7 +33,7 @@ function buildHeaders(init?: RequestInit) {
   return headers;
 }
 
-export async function requestJson<T = any>(input: string, init?: RequestInit): Promise<T> {
+export async function requestJson<T = unknown>(input: string, init?: RequestInit): Promise<T> {
   const response = await fetch(buildUrl(input), {
     ...init,
     headers: buildHeaders(init),

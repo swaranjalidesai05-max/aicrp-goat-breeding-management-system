@@ -41,7 +41,7 @@ export default function ClustersPage() {
     try {
       const result = await requestJson(`/clusters?search=${encodeURIComponent(search)}`);
       setClusters(result.data ?? []);
-    } catch (err) {
+    } catch {
       setError('Unable to load clusters.');
     } finally {
       setLoading(false);
@@ -224,7 +224,8 @@ export default function ClustersPage() {
                       <td className="px-3 py-2">{cluster.code}</td>
                       <td className="px-3 py-2">{cluster.name}</td>
                       <td className="px-3 py-2 text-stone-500">
-                        {cluster.district || '—'}{cluster.state ? `, ${cluster.state}` : ''}
+                        {cluster.district || '—'}
+                        {cluster.state ? `, ${cluster.state}` : ''}
                       </td>
                       <td className="px-3 py-2">
                         <span

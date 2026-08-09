@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AICRP Sangamneri Goat Breeding & Genetic Tracking System
 
 Monorepo for digitizing goat breeding and genetic tracking under the All India Coordinated Research Project (AICRP).
@@ -80,3 +81,6 @@ Monorepo for digitizing goat breeding and genetic tracking under the All India C
 - [Backend README](backend/README.md)
 - [Admin panel README](admin-panel/README.md)
 - [Mobile app README](mobile-app/README.md)
+=======
+# aicrp-goat-breeding-management-system
+>>>>>>> cce2242bbaa0c8ea88ea362e423436afb9a04a2f
