@@ -25,47 +25,10 @@ export function createApp() {
   app.use(helmet());
   app.use(
     cors({
-      origin: (origin, callback) => {
-        // Allow requests with no Origin header
-        if (!origin) {
-          return callback(null, true);
-        }
-
-        // Allow your configured frontend origin
-        if (origin === env.corsOrigin) {
-          return callback(null, true);
-        }
-
-        // Allow localhost during development
-        if (origin === 'http://localhost:5173' || origin === 'http://localhost:3000') {
-          return callback(null, true);
-        }
-
-        // Allow Vercel deployments for this Admin Panel
-        try {
-          const url = new URL(origin);
-
-          if (
-            url.protocol === 'https:' &&
-            url.hostname.endsWith('.vercel.app') &&
-            url.hostname.startsWith('aicrp-goat-breeding-management-system-admin')
-          ) {
-            return callback(null, true);
-          }
-        } catch {
-          // Invalid origin
-        }
-
-        console.log('CORS blocked:', origin);
-        return callback(new Error('Not allowed by CORS'));
-      },
-
+      origin: true,
       credentials: true,
-
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-
       allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-
       optionsSuccessStatus: 204,
     }),
   );
